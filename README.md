@@ -8,6 +8,10 @@
 </p>
 
 <p align="center">
+  <img width="800" src="https://via.placeholder.com/800x450?text=TgROI+Screenshot" alt="TgROI Screenshot">
+</p>
+
+<p align="center">
   <a href="#-about">🇬🇧 English</a> |
   <a href="#-про-проект">🇺🇦 Українська</a> |
   <a href="#-о-проекте">🇷🇺 Русский</a>
@@ -35,12 +39,6 @@ TgROI is a web application for analyzing the efficiency of advertising in Telegr
 - Automatic recommendations for channel selection
 - Sorting by various parameters
 - Data storage in localStorage
-
-### 🖥️ Screenshot
-
-<p align="center">
-  <img width="800" src="https://via.placeholder.com/800x450?text=TgROI+Screenshot" alt="TgROI Screenshot">
-</p>
 
 ### 🛠️ Technologies
 
@@ -93,12 +91,6 @@ TgROI — це веб-додаток для аналізу ефективнос�
 - Сортування за різними параметрами
 - Збереження даних у localStorage
 
-### 🖥️ Скріншот
-
-<p align="center">
-  <img width="800" src="https://via.placeholder.com/800x450?text=TgROI+Screenshot" alt="TgROI Screenshot">
-</p>
-
 ### 🛠️ Технології
 
 - **Frontend**: Next.js 14, TypeScript, Tailwind CSS
@@ -149,12 +141,6 @@ TgROI — это веб-приложение для анализа эффект�
 - Автоматические рекомендации по выбору каналов
 - Сортировка по различным параметрам
 - Сохранение данных в localStorage
-
-### 🖥️ Скриншот
-
-<p align="center">
-  <img width="800" src="https://via.placeholder.com/800x450?text=TgROI+Screenshot" alt="TgROI Screenshot">
-</p>
 
 ### 🛠️ Технологии
 
