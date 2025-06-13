@@ -137,6 +137,7 @@ export default function ChannelTable({ channels, isAdmin = false }: ChannelTable
               >
                 Название {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
+              <th className="px-4 py-2 text-left border-b">Подписчики</th>
               <th className="px-4 py-2 text-left border-b">Тематика</th>
               <th className="px-4 py-2 text-left border-b">География</th>
               <th 
@@ -177,6 +178,7 @@ export default function ChannelTable({ channels, isAdmin = false }: ChannelTable
                 return (
                   <tr key={channel.id} className="hover:bg-gray-50">
                     <td className="px-4 py-2 border-b">{channel.name}</td>
+                    <td className="px-4 py-2 border-b">{channel.subscribers.toLocaleString()}</td>
                     <td className="px-4 py-2 border-b">
                       <Badge variant="outline" className="bg-gray-100">
                         {channel.topic || "Не указана"}
