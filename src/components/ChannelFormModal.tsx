@@ -8,12 +8,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import ChannelForm from "./ChannelForm";
+import { HelpCircle } from "lucide-react";
 
 export default function ChannelFormModal() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
+  };
+
+  const handleHelpOpenChange = (open: boolean) => {
+    setIsHelpOpen(open);
   };
 
   const handleFormSuccess = () => {
@@ -24,29 +30,48 @@ export default function ChannelFormModal() {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <Button variant="default" onClick={() => setIsOpen(true)}>
-        Добавить канал
-      </Button>
-      {isOpen && (
-        <DialogContent 
-          className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto"
-          onInteractOutside={(e) => e.preventDefault()}
+    <div className="flex items-center gap-2">
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <Button variant="default" onClick={() => setIsOpen(true)}>
+          Добавить канал
+        </Button>
+        {isOpen && (
+          <DialogContent 
+            className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto"
+            onInteractOutside={(e) => e.preventDefault()}
+          >
+            <DialogHeader>
+              <DialogTitle>Добавить новый канал</DialogTitle>
+              <DialogDescription>
+                Введите данные канала для оценки эффективности рекламы
+              </DialogDescription>
+            </DialogHeader>
+            <ChannelForm onSubmitSuccess={handleFormSuccess} />
+          </DialogContent>
+        )}
+      </Dialog>
+      
+      <Dialog open={isHelpOpen} onOpenChange={handleHelpOpenChange}>
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={() => setIsHelpOpen(true)} 
+          className="rounded-full"
+          aria-label="Информация об эффективности"
         >
+          <HelpCircle className="h-4 w-4" />
+        </Button>
+        <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>Добавить новый канал</DialogTitle>
-            <DialogDescription>
-              Введите данные канала для оценки эффективности рекламы
-            </DialogDescription>
+            <DialogTitle>Как оценивается эффективность?</DialogTitle>
           </DialogHeader>
-          <div className="p-3 mb-4 border rounded bg-slate-50">
-            <h3 className="font-medium mb-2">Как оценивается эффективность?</h3>
-            <p className="text-sm text-gray-600 mb-3">
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
               Эффективность — это комплексный показатель, учитывающий стоимость охвата аудитории (CPM) 
               и привлечения новых подписчиков. <span className="font-medium">Чем ниже значение, тем лучше.</span>
             </p>
             
-            <div className="bg-white p-3 rounded border">
+            <div className="bg-slate-50 p-3 rounded border">
               <div className="text-lg font-semibold mb-1">
                 <span className="text-gray-800">ниже рынка</span>{" "}
                 <span className="text-rose-500">на 30.0%</span>
@@ -65,18 +90,26 @@ export default function ChannelFormModal() {
               </div>
             </div>
             
-            <div className="mt-2 text-xs text-gray-500">
-              <p className="mb-1">Интерпретация показателя:</p>
-              <div className="flex justify-between gap-2">
-                <span><span className="inline-block w-3 h-3 rounded bg-green-400"></span> &lt;0.8: Отлично</span>
-                <span><span className="inline-block w-3 h-3 rounded bg-yellow-300"></span> 0.8-1.2: Нормально</span>
-                <span><span className="inline-block w-3 h-3 rounded bg-red-400"></span> &gt;1.2: Низко</span>
+            <div className="mt-2 text-gray-600">
+              <p className="mb-2">Интерпретация показателя:</p>
+              <div className="grid grid-cols-1 gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="inline-block w-3 h-3 rounded bg-green-400"></span>
+                  <span>&lt;0.8: Отличная эффективность (значительно лучше среднего)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block w-3 h-3 rounded bg-yellow-300"></span>
+                  <span>0.8-1.2: Нормальная эффективность (на уровне рынка)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block w-3 h-3 rounded bg-red-400"></span>
+                  <span>&gt;1.2: Низкая эффективность (хуже среднего)</span>
+                </div>
               </div>
             </div>
           </div>
-          <ChannelForm onSubmitSuccess={handleFormSuccess} />
         </DialogContent>
-      )}
-    </Dialog>
+      </Dialog>
+    </div>
   );
 } 
