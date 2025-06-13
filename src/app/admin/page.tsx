@@ -12,7 +12,7 @@ export default function AdminPage() {
         <h1 className="text-2xl font-bold">Админка: управление каналами</h1>
         <ChannelFormModal />
       </div>
-      <ChannelTable channels={channels} />
+      <ChannelTable channels={channels} isAdmin />
     </div>
   );
 } 

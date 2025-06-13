@@ -10,9 +10,10 @@ import { useChannels } from '@/context/ChannelsContext';
 
 interface ChannelTableProps {
   channels: Channel[];
+  isAdmin?: boolean;
 }
 
-export default function ChannelTable({ channels }: ChannelTableProps) {
+export default function ChannelTable({ channels, isAdmin = false }: ChannelTableProps) {
   const { deleteChannel } = useChannels();
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'reach' | 'efficiency'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -203,16 +204,20 @@ export default function ChannelTable({ channels }: ChannelTableProps) {
                     </td>
                     <td className="px-4 py-2 border-b text-center">
                       <a href={`https://t.me/${channel.username}`} target="_blank" rel="noopener noreferrer">
-                        <Button size="sm" variant="outline" className="mr-2">
+                        <Button size="sm" variant="outline" className={isAdmin ? "mr-2" : undefined}>
                           Перейти
                         </Button>
                       </a>
-                      <Button size="sm" variant="secondary" className="mr-2" onClick={() => setEditId(channel.id)}>
-                        Редактировать
-                      </Button>
-                      <Button size="sm" variant="destructive" onClick={() => deleteChannel(channel.id)}>
-                        Удалить
-                      </Button>
+                      {isAdmin && (
+                        <>
+                          <Button size="sm" variant="secondary" className="mr-2" onClick={() => setEditId(channel.id)}>
+                            Редактировать
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => deleteChannel(channel.id)}>
+                            Удалить
+                          </Button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 );
@@ -220,7 +225,7 @@ export default function ChannelTable({ channels }: ChannelTableProps) {
             )}
           </tbody>
         </table>
-        {editId && (
+        {isAdmin && editId && (
           <ChannelEditModal channelId={editId} isOpen={!!editId} onClose={() => setEditId(null)} />
         )}
       </div>
