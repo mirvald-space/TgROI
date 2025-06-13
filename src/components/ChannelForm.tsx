@@ -6,23 +6,40 @@ import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
 
-export default function ChannelForm() {
+interface ChannelFormProps {
+  onSubmitSuccess?: () => void;
+}
+
+export default function ChannelForm({ onSubmitSuccess }: ChannelFormProps) {
   const { addChannel } = useChannels();
   const [error, setError] = useState<string | null>(null);
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    subscribers: string;
+    reach: string;
+    price: string;
+    err: string;
+    errType: '24h' | 'overall';
+  }>({
     name: '',
     subscribers: '',
     reach: '',
     price: '',
     err: '',
+    errType: '24h',
   });
 
   // Handle input change
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Handle ERR type change
+  const handleErrTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, errType: e.target.value as '24h' | 'overall' }));
   };
 
   // Handle form submission
@@ -69,6 +86,7 @@ export default function ChannelForm() {
       reach,
       price,
       err,
+      errType: formData.errType,
     });
 
     // Reset form
@@ -78,7 +96,13 @@ export default function ChannelForm() {
       reach: '',
       price: '',
       err: '',
+      errType: '24h',
     });
+
+    // Call callback if provided
+    if (onSubmitSuccess) {
+      onSubmitSuccess();
+    }
   };
 
   return (
@@ -146,6 +170,32 @@ export default function ChannelForm() {
           </div>
 
           <div className="grid gap-2">
+            <Label>Тип ERR</Label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="errType"
+                  value="24h"
+                  checked={formData.errType === '24h'}
+                  onChange={handleErrTypeChange}
+                />
+                <span>ERR 24</span>
+              </label>
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="errType"
+                  value="overall"
+                  checked={formData.errType === 'overall'}
+                  onChange={handleErrTypeChange}
+                />
+                <span>ERR</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="grid gap-2">
             <Label htmlFor="err">ERR%</Label>
             <Input
               id="err"
@@ -159,7 +209,9 @@ export default function ChannelForm() {
               placeholder="5.5"
             />
             <p className="text-sm text-gray-500">
-              Процент пользователей, которые взаимодействуют с публикациями
+              {formData.errType === '24h'
+                ? 'Средний процент подписчиков, увидевших один пост за 24 часа (лучше брать среднее по последним 3–5 постам)'
+                : 'Средний процент подписчиков, увидевших посты за месяц или за всё время'}
             </p>
           </div>
         </CardContent>

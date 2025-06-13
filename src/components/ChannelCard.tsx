@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatNumber } from '@/lib/calculations';
+import RoiForecast from './RoiForecast';
+import { useState } from 'react';
 
 interface ChannelCardProps {
   channel: Channel;
@@ -10,6 +12,7 @@ interface ChannelCardProps {
 
 export default function ChannelCard({ channel }: ChannelCardProps) {
   const { deleteChannel } = useChannels();
+  const [showRoiForecast, setShowRoiForecast] = useState(false);
 
   // Determine efficiency color
   const getEfficiencyColor = (score: number) => {
@@ -48,7 +51,12 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
           </div>
           <div>
             <p className="text-sm text-gray-500">ERR%</p>
-            <p className="text-lg font-medium">{channel.err.toFixed(1)}%</p>
+            <p className="text-lg font-medium">
+              {channel.err.toFixed(1)}%
+              <span className="ml-2 text-xs text-gray-500">
+                {channel.errType === '24h' ? '24ч' : 'Общий'}
+              </span>
+            </p>
           </div>
           <div>
             <p className="text-sm text-gray-500">CPM</p>
@@ -72,6 +80,27 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
             </p>
           </div>
         </div>
+        
+        <div className="pt-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowRoiForecast(!showRoiForecast)}
+            className="w-full"
+          >
+            {showRoiForecast ? "Скрыть прогноз ROI" : "Показать прогноз ROI"}
+          </Button>
+        </div>
+
+        {showRoiForecast && (
+          <div className="pt-4">
+            <RoiForecast 
+              price={channel.price}
+              reach={channel.reach}
+              err={channel.err}
+            />
+          </div>
+        )}
       </CardContent>
       <CardFooter>
         <Button 

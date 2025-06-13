@@ -12,6 +12,7 @@ export interface Channel {
   costPerSubscriber: number;
   efficiencyScore: number;
   isRecommended: boolean;
+  errType: '24h' | 'overall';
 }
 
 interface ChannelsContextType {
