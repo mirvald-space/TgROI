@@ -4,18 +4,22 @@ import { Channel } from '@/types';
 import { formatCurrency, formatNumber } from '@/lib/calculations';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { Tooltip } from '@/components/ui/tooltip';
+import { Tooltip } from './ui/tooltip';
+import ChannelEditModal from './ChannelEditModal';
+import { useChannels } from '@/context/ChannelsContext';
 
 interface ChannelTableProps {
   channels: Channel[];
 }
 
 export default function ChannelTable({ channels }: ChannelTableProps) {
+  const { deleteChannel } = useChannels();
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'reach' | 'efficiency'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [filteredChannels, setFilteredChannels] = useState<Channel[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBy, setFilterBy] = useState<'all' | 'recommended'>('all');
+  const [editId, setEditId] = useState<string | null>(null);
   
   // Sort and filter channels
   useEffect(() => {
@@ -203,6 +207,12 @@ export default function ChannelTable({ channels }: ChannelTableProps) {
                           Перейти
                         </Button>
                       </a>
+                      <Button size="sm" variant="secondary" className="mr-2" onClick={() => setEditId(channel.id)}>
+                        Редактировать
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => deleteChannel(channel.id)}>
+                        Удалить
+                      </Button>
                     </td>
                   </tr>
                 );
@@ -210,6 +220,9 @@ export default function ChannelTable({ channels }: ChannelTableProps) {
             )}
           </tbody>
         </table>
+        {editId && (
+          <ChannelEditModal channelId={editId} isOpen={!!editId} onClose={() => setEditId(null)} />
+        )}
       </div>
     </div>
   );
