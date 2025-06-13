@@ -155,7 +155,7 @@ export function ChannelsProvider({ children }: { children: ReactNode }) {
     const now = new Date().toISOString();
     // Получить текущий канал для сравнения цены
     const current = channels.find(ch => ch.id === id);
-    const updateChannel: any = {
+    const updateChannel: Record<string, unknown> = {
       name: channelData.name,
       username: channelData.username,
       subscribers: channelData.subscribers,
