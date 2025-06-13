@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatNumber } from '@/lib/calculations';
 import RoiForecast from './RoiForecast';
+import EfficiencyIndicator from './EfficiencyIndicator';
 import { useState } from 'react';
 
 interface ChannelCardProps {
@@ -21,10 +22,18 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
     return "bg-red-500 hover:bg-red-600";
   };
 
+  // Get efficiency rating
+  const getEfficiencyRating = (score: number): string => {
+    if (score < 0.8) return "Отлично";
+    if (score < 1.2) return "Нормально";
+    return "Низкая";
+  };
+
   // Format metrics with appropriate units
   const formattedCPM = formatCurrency(channel.cpm);
   const formattedCostPerSubscriber = formatCurrency(channel.costPerSubscriber);
   const formattedEfficiency = formatNumber(channel.efficiencyScore);
+  const efficiencyRating = getEfficiencyRating(channel.efficiencyScore);
 
   return (
     <Card className="w-full">
@@ -69,17 +78,10 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
           <p className="text-lg font-medium">{formattedCostPerSubscriber}</p>
         </div>
 
-        <div>
-          <p className="text-sm text-gray-500">Оценка эффективности</p>
-          <div className="flex items-center gap-2">
-            <Badge className={getEfficiencyColor(channel.efficiencyScore)}>
-              {formattedEfficiency}
-            </Badge>
-            <p className="text-xs text-gray-500">
-              (Чем ниже, тем лучше)
-            </p>
-          </div>
-        </div>
+        <EfficiencyIndicator 
+          score={channel.efficiencyScore}
+          marketAverage={1}
+        />
         
         <div className="pt-2">
           <Button 

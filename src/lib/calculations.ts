@@ -16,7 +16,20 @@ export function calculateCostPerSubscriber(price: number, reach: number, err: nu
 
 /**
  * Calculate Efficiency Score (lower is better)
- * Normalized weighted combination of CPM and Cost Per Subscriber
+ * 
+ * Эффективность - комплексный показатель выгодности размещения рекламы в канале.
+ * Он объединяет два ключевых метрика рекламы:
+ * 1. CPM (стоимость за 1000 показов) - насколько дорого стоит охватить аудиторию
+ * 2. Стоимость за подписчика - сколько стоит привлечение нового подписчика
+ * 
+ * Значения нормализуются относительно средних показателей рынка:
+ * - CPM делится на 50$ (среднее значение CPM)
+ * - Стоимость подписчика делится на 0.5$ (среднее значение на рынке)
+ * 
+ * Интерпретация показателя:
+ * - < 0.8: отличная эффективность (выгоднее среднерыночной)
+ * - 0.8 - 1.2: средняя эффективность (на уровне рынка)
+ * - > 1.2: низкая эффективность (дороже среднерыночной)
  */
 export function calculateEfficiencyScore(cpm: number, costPerSubscriber: number): number {
   const normalizedCPM = cpm / 50; // Assuming average CPM is around $50

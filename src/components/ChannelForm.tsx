@@ -5,10 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
+import { MARKET_DATA } from '@/context/ChannelsContext';
 
 interface ChannelFormProps {
   onSubmitSuccess?: () => void;
 }
+
+// Тип категории канала для безопасной индексации
+type ChannelCategory = 'micro' | 'small' | 'medium' | 'large';
 
 export default function ChannelForm({ onSubmitSuccess }: ChannelFormProps) {
   const { addChannel } = useChannels();
@@ -105,6 +109,45 @@ export default function ChannelForm({ onSubmitSuccess }: ChannelFormProps) {
     }
   };
 
+  // Рассчитать рекомендуемый охват на основе количества подписчиков
+  const getRecommendedReach = (): string => {
+    const subscribers = Number(formData.subscribers);
+    if (isNaN(subscribers) || subscribers <= 0) return "";
+    
+    // Типичный охват составляет 20-40% от подписчиков
+    const minReach = Math.round(subscribers * 0.2);
+    const maxReach = Math.round(subscribers * 0.4);
+    
+    return `≈ ${minReach.toLocaleString()}-${maxReach.toLocaleString()}`;
+  };
+
+  // Получить диапазон CPM на основе размера канала
+  const getRecommendedPrice = (): string => {
+    const subscribers = Number(formData.subscribers);
+    const reach = Number(formData.reach);
+    if (isNaN(subscribers) || subscribers <= 0 || isNaN(reach) || reach <= 0) return "";
+    
+    let category: ChannelCategory = 'micro';
+    if (subscribers >= 1000000) category = 'large';
+    else if (subscribers >= 100000) category = 'medium';
+    else if (subscribers >= 10000) category = 'small';
+    
+    const { min, max } = MARKET_DATA.cpm[category];
+    const minPrice = Math.round(min * reach / 1000);
+    const maxPrice = Math.round(max * reach / 1000);
+    
+    return `≈ $${minPrice}-${maxPrice} (CPM $${min}-${max})`;
+  };
+
+  // Получить типичный ERR на основе типа (24h или overall)
+  const getRecommendedErr = (): string => {
+    if (formData.errType === '24h') {
+      return `Хорошо: ${MARKET_DATA.openRate.average}-${MARKET_DATA.openRate.high}%, Отлично: >=${MARKET_DATA.openRate.excellent}%`;
+    } else {
+      return `Нормально: ${MARKET_DATA.err.average}%, Хорошо: >=${MARKET_DATA.err.high}%`;
+    }
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -140,6 +183,9 @@ export default function ChannelForm({ onSubmitSuccess }: ChannelFormProps) {
               onChange={handleChange}
               placeholder="100000"
             />
+            <p className="text-xs text-gray-500">
+              Общее количество подписчиков канала
+            </p>
           </div>
 
           <div className="grid gap-2">
@@ -153,6 +199,9 @@ export default function ChannelForm({ onSubmitSuccess }: ChannelFormProps) {
               onChange={handleChange}
               placeholder="25000"
             />
+            <p className="text-xs text-gray-500">
+              Средний охват одного рекламного поста {getRecommendedReach()}
+            </p>
           </div>
 
           <div className="grid gap-2">
@@ -167,6 +216,9 @@ export default function ChannelForm({ onSubmitSuccess }: ChannelFormProps) {
               onChange={handleChange}
               placeholder="500"
             />
+            <p className="text-xs text-gray-500">
+              {getRecommendedPrice() || "Рыночный диапазон зависит от размера канала и охвата"}
+            </p>
           </div>
 
           <div className="grid gap-2">
@@ -208,10 +260,13 @@ export default function ChannelForm({ onSubmitSuccess }: ChannelFormProps) {
               onChange={handleChange}
               placeholder="5.5"
             />
-            <p className="text-sm text-gray-500">
+            <p className="text-xs text-gray-500">
               {formData.errType === '24h'
                 ? 'Средний процент подписчиков, увидевших один пост за 24 часа (лучше брать среднее по последним 3–5 постам)'
                 : 'Средний процент подписчиков, увидевших посты за месяц или за всё время'}
+            </p>
+            <p className="text-xs text-gray-500">
+              {getRecommendedErr()}
             </p>
           </div>
         </CardContent>

@@ -5,16 +5,31 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatNumber } from '@/lib/calculations';
 import RoiForecast from './RoiForecast';
+import EfficiencyIndicator from './EfficiencyIndicator';
+import ChannelEditModal from './ChannelEditModal';
 
 export default function ChannelTable() {
   const { sortedChannels, deleteChannel, sortType, setSortType } = useChannels();
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
+  const [showEfficiencyDetails, setShowEfficiencyDetails] = useState<string | null>(null);
+  const [editingChannelId, setEditingChannelId] = useState<string | null>(null);
 
-  // Determine efficiency color
+  // Determine efficiency color based on 2025 market data
   const getEfficiencyColor = (score: number) => {
-    if (score < 0.8) return "bg-green-500";
-    if (score < 1.2) return "bg-yellow-500";
-    return "bg-red-500";
+    if (score < 0.8) return "bg-green-500";  // Отличный показатель - значительно лучше среднего
+    if (score < 1.1) return "bg-green-300";  // Хороший показатель - лучше среднего
+    if (score < 1.3) return "bg-yellow-400"; // Нормальный показатель - примерно соответствует среднему
+    if (score < 1.7) return "bg-orange-500"; // Посредственный показатель - хуже среднего
+    return "bg-red-500";                     // Плохой показатель - значительно хуже среднего
+  };
+
+  // Get efficiency rating based on 2025 market data
+  const getEfficiencyRating = (score: number): string => {
+    if (score < 0.8) return "Отлично";
+    if (score < 1.1) return "Хорошо";
+    if (score < 1.3) return "Нормально";
+    if (score < 1.7) return "Посредственно";
+    return "Низкая";
   };
 
   // Handle sort change
@@ -31,6 +46,25 @@ export default function ChannelTable() {
     }
   };
 
+  // Toggle efficiency details
+  const toggleEfficiencyDetails = (channelId: string) => {
+    if (showEfficiencyDetails === channelId) {
+      setShowEfficiencyDetails(null);
+    } else {
+      setShowEfficiencyDetails(channelId);
+    }
+  };
+
+  // Open edit modal
+  const openEditModal = (channelId: string) => {
+    setEditingChannelId(channelId);
+  };
+
+  // Close edit modal
+  const closeEditModal = () => {
+    setEditingChannelId(null);
+  };
+
   return (
     <div className="overflow-x-auto">
       <div className="flex justify-between items-center mb-4">
@@ -41,7 +75,7 @@ export default function ChannelTable() {
             variant={sortType === "efficiency" ? "default" : "outline"}
             onClick={() => handleSortChange("efficiency")}
           >
-            По эффективности
+            Сортировать по эффективности
           </Button>
           <Button 
             size="sm"
@@ -62,7 +96,7 @@ export default function ChannelTable() {
       
       <div className="w-full overflow-x-auto">
         <Table className="min-w-full">
-          <TableCaption>Сравнение рекламных площадок Telegram</TableCaption>
+          <TableCaption>Сравнение рекламных площадок Telegram (данные рынка 2025)</TableCaption>
           <TableHeader>
             <TableRow>
               <TableHead className="w-[200px]">Канал</TableHead>
@@ -73,7 +107,12 @@ export default function ChannelTable() {
               <TableHead className="text-right">Тип ERR</TableHead>
               <TableHead className="text-right">CPM</TableHead>
               <TableHead className="text-right">Стоимость подписчика</TableHead>
-              <TableHead className="text-right">Эффективность</TableHead>
+              <TableHead className="text-right">
+                Эффективность
+                <span className="block text-xs font-normal mt-1">
+                  (комплексный показатель)
+                </span>
+              </TableHead>
               <TableHead className="text-right w-[160px]">Действия</TableHead>
             </TableRow>
           </TableHeader>
@@ -111,9 +150,17 @@ export default function ChannelTable() {
                       <TableCell className="text-right">{formatCurrency(channel.cpm)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(channel.costPerSubscriber)}</TableCell>
                       <TableCell className="text-right">
-                        <Badge className={getEfficiencyColor(channel.efficiencyScore)}>
-                          {formatNumber(channel.efficiencyScore)}
-                        </Badge>
+                        <div className="flex flex-col items-end gap-1">
+                          <Badge 
+                            className={`${getEfficiencyColor(channel.efficiencyScore)} cursor-pointer`}
+                            onClick={() => toggleEfficiencyDetails(channel.id)}
+                          >
+                            {getEfficiencyRating(channel.efficiencyScore)}
+                          </Badge>
+                          <div className="text-xs text-gray-500">
+                            {formatNumber(channel.efficiencyScore)}
+                          </div>
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex flex-col gap-2">
@@ -127,6 +174,13 @@ export default function ChannelTable() {
                           </Button>
                           <Button 
                             size="sm"
+                            variant="outline"
+                            onClick={() => openEditModal(channel.id)}
+                          >
+                            Редактировать
+                          </Button>
+                          <Button 
+                            size="sm"
                             variant="destructive"
                             onClick={() => deleteChannel(channel.id)}
                           >
@@ -135,6 +189,18 @@ export default function ChannelTable() {
                         </div>
                       </TableCell>
                     </TableRow>
+                    {showEfficiencyDetails === channel.id && (
+                      <TableRow>
+                        <TableCell colSpan={10} className="bg-slate-50 p-4 pb-6">
+                          <div className="max-w-md mx-auto">
+                            <EfficiencyIndicator 
+                              score={channel.efficiencyScore}
+                              marketAverage={1}
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
                     {selectedChannelId === channel.id && (
                       <TableRow>
                         <TableCell colSpan={10} className="p-4 bg-slate-50">
@@ -153,6 +219,15 @@ export default function ChannelTable() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Edit Channel Modal */}
+      {editingChannelId && (
+        <ChannelEditModal
+          isOpen={!!editingChannelId}
+          onClose={closeEditModal}
+          channelId={editingChannelId}
+        />
+      )}
     </div>
   );
 } 
