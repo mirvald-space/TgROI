@@ -1,241 +1,188 @@
-import React, { useState } from 'react';
-import { useChannels } from '@/context/ChannelsContext';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Channel } from '@/types';
 import { formatCurrency, formatNumber } from '@/lib/calculations';
-import RoiForecast from './RoiForecast';
-import EfficiencyIndicator from './EfficiencyIndicator';
-import ChannelEditModal from './ChannelEditModal';
-import { FaArrowUp } from 'react-icons/fa';
+import { Badge } from '@/components/ui/badge';
 
-export default function ChannelTable() {
-  const { sortedChannels, deleteChannel, sortType, setSortType } = useChannels();
-  const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
-  const [showEfficiencyDetails, setShowEfficiencyDetails] = useState<string | null>(null);
-  const [editingChannelId, setEditingChannelId] = useState<string | null>(null);
+interface ChannelTableProps {
+  channels: Channel[];
+}
 
-  // Determine efficiency color based on 2025 market data
-  const getEfficiencyColor = (score: number) => {
-    if (score < 0.8) return "bg-green-500";  // Отличный показатель - значительно лучше среднего
-    if (score < 1.1) return "bg-green-300";  // Хороший показатель - лучше среднего
-    if (score < 1.3) return "bg-yellow-400"; // Нормальный показатель - примерно соответствует среднему
-    if (score < 1.7) return "bg-orange-500"; // Посредственный показатель - хуже среднего
-    return "bg-red-500";                     // Плохой показатель - значительно хуже среднего
-  };
-
-  // Get efficiency rating based on 2025 market data
-  const getEfficiencyRating = (score: number): string => {
-    if (score < 0.8) return "Отлично";
-    if (score < 1.1) return "Хорошо";
-    if (score < 1.3) return "Нормально";
-    if (score < 1.7) return "Посредственно";
-    return "Низкая";
-  };
-
-  // Handle sort change
-  const handleSortChange = (type: "efficiency" | "cpm" | "costPerSubscriber") => {
-    setSortType(type);
-  };
+export default function ChannelTable({ channels }: ChannelTableProps) {
+  const [sortBy, setSortBy] = useState<'name' | 'price' | 'reach' | 'efficiency'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [filteredChannels, setFilteredChannels] = useState<Channel[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterBy, setFilterBy] = useState<'all' | 'recommended'>('all');
   
-  // Toggle ROI forecast for a channel
-  const toggleRoiForecast = (channelId: string) => {
-    if (selectedChannelId === channelId) {
-      setSelectedChannelId(null);
+  // Sort and filter channels
+  useEffect(() => {
+    // Проверка на null или undefined
+    const channelsToProcess = channels || [];
+    let sorted = [...channelsToProcess];
+    
+    // Apply filter
+    if (filterBy === 'recommended') {
+      sorted = sorted.filter(channel => channel.isRecommended);
+    }
+    
+    // Apply search
+    if (searchTerm) {
+      sorted = sorted.filter(channel => 
+        channel.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (channel.topic && channel.topic.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+    
+    // Apply sorting
+    sorted.sort((a, b) => {
+      if (sortBy === 'name') {
+        return sortOrder === 'asc'
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name);
+      } else if (sortBy === 'price') {
+        return sortOrder === 'asc'
+          ? a.price - b.price
+          : b.price - a.price;
+      } else if (sortBy === 'reach') {
+        return sortOrder === 'asc'
+          ? a.reach - b.reach
+          : b.reach - a.reach;
+      } else if (sortBy === 'efficiency') {
+        return sortOrder === 'asc'
+          ? a.efficiencyScore - b.efficiencyScore
+          : b.efficiencyScore - a.efficiencyScore;
+      }
+      return 0;
+    });
+    
+    setFilteredChannels(sorted);
+  }, [channels, sortBy, sortOrder, searchTerm, filterBy]);
+  
+  const toggleSort = (column: 'name' | 'price' | 'reach' | 'efficiency') => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
-      setSelectedChannelId(channelId);
+      setSortBy(column);
+      setSortOrder('asc');
     }
   };
 
-  // Toggle efficiency details
-  const toggleEfficiencyDetails = (channelId: string) => {
-    if (showEfficiencyDetails === channelId) {
-      setShowEfficiencyDetails(null);
-    } else {
-      setShowEfficiencyDetails(channelId);
-    }
-  };
-
-  // Open edit modal
-  const openEditModal = (channelId: string) => {
-    setEditingChannelId(channelId);
-  };
-
-  // Close edit modal
-  const closeEditModal = () => {
-    setEditingChannelId(null);
+  // Get efficiency class based on score
+  const getEfficiencyClass = (score: number) => {
+    if (score < 0.7) return 'bg-green-500';
+    if (score < 0.9) return 'bg-green-300';
+    if (score < 1.1) return 'bg-yellow-400';
+    if (score < 1.5) return 'bg-orange-400';
+    return 'bg-red-500';
   };
 
   return (
-    <div className="overflow-x-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Список каналов</h2>
-        <div className="flex flex-wrap gap-2">
-          <Button 
-            size="sm"
-            variant={sortType === "efficiency" ? "default" : "outline"}
-            onClick={() => handleSortChange("efficiency")}
+    <div className="w-full">
+      <div className="flex flex-col sm:flex-row justify-between mb-4 gap-2">
+        <div className="relative max-w-sm">
+          <input
+            type="text"
+            placeholder="Поиск по названию или тематике..."
+            className="border rounded py-2 px-3 w-full"
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant={filterBy === 'all' ? 'default' : 'outline'}
+            onClick={() => setFilterBy('all')}
           >
-            По эффективности
+            Все каналы
           </Button>
-          <Button 
-            size="sm"
-            variant={sortType === "cpm" ? "default" : "outline"}
-            onClick={() => handleSortChange("cpm")}
+          <Button
+            variant={filterBy === 'recommended' ? 'default' : 'outline'}
+            onClick={() => setFilterBy('recommended')}
           >
-            По CPM
-          </Button>
-          <Button 
-            size="sm"
-            variant={sortType === "costPerSubscriber" ? "default" : "outline"}
-            onClick={() => handleSortChange("costPerSubscriber")}
-          >
-            По стоимости подписчика
+            Рекомендуемые
           </Button>
         </div>
       </div>
-      
-      <div className="w-full overflow-x-auto">
-        <Table className="min-w-full">
-          <TableCaption>Сравнение рекламных площадок Telegram (данные рынка 2025)</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[200px]">Канал</TableHead>
-              <TableHead className="text-right">Тематика</TableHead>
-              <TableHead className="text-right">Подписчики</TableHead>
-              <TableHead className="text-right">Охват</TableHead>
-              <TableHead className="text-right">Цена</TableHead>
-              <TableHead className="text-right">ERR%</TableHead>
-              <TableHead className="text-right">Тип ERR</TableHead>
-              <TableHead className="text-right">CPM</TableHead>
-              <TableHead className="text-right">Стоимость подписчика</TableHead>
-              <TableHead className="text-right">
-                Эффективность
-              </TableHead>
-              <TableHead className="text-right w-[160px]">Действия</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedChannels.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={11} className="text-center py-4">
-                  Каналы еще не добавлены. Добавьте канал через форму.
-                </TableCell>
-              </TableRow>
-            ) : (
-              <>
-                {sortedChannels.map((channel) => (
-                  <React.Fragment key={channel.id}>
-                    <TableRow>
-                      <TableCell className="font-medium">
-                        {channel.name}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {channel.topic || "—"}
-                      </TableCell>
-                      <TableCell className="text-right">{channel.subscribers.toLocaleString()}</TableCell>
-                      <TableCell className="text-right">{channel.reach.toLocaleString()}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(channel.price)}</TableCell>
-                      <TableCell className="text-right">{channel.err.toFixed(1)}%</TableCell>
-                      <TableCell className="text-right">
-                        {channel.errType === '24h' ? (
-                          <span title="ERR за 24 часа">24ч</span>
-                        ) : (
-                          <span title="ERR общий">Общий</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">{formatCurrency(channel.cpm)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(channel.costPerSubscriber)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex gap-1">
-                          <Badge 
-                            className={`${getEfficiencyColor(channel.efficiencyScore)} cursor-pointer`}
-                            onClick={() => toggleEfficiencyDetails(channel.id)}
-                          >
-                            {formatNumber(channel.efficiencyScore)}
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="relative">
-                          <Button 
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedChannelId(prev => prev === channel.id ? null : channel.id)}
-                            className="whitespace-nowrap"
-                          >
-                            Действия
-                          </Button>
-                          {selectedChannelId === channel.id && (
-                            <div className="absolute right-0 top-full z-10 mt-1 min-w-[150px] rounded-md border bg-white p-1 shadow-md">
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                className="w-full justify-start"
-                                onClick={() => toggleRoiForecast(channel.id)}
-                              >
-                                {selectedChannelId === channel.id ? "Скрыть ROI" : "Прогноз ROI"}
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                className="w-full justify-start"
-                                onClick={() => openEditModal(channel.id)}
-                              >
-                                Редактировать
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                className="w-full justify-start text-red-600"
-                                onClick={() => deleteChannel(channel.id)}
-                              >
-                                Удалить
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                    {showEfficiencyDetails === channel.id && (
-                      <TableRow>
-                        <TableCell colSpan={11} className="bg-slate-50 p-4 pb-6">
-                          <div className="max-w-md mx-auto">
-                            <EfficiencyIndicator 
-                              score={channel.efficiencyScore}
-                              marketAverage={1}
-                            />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                    {selectedChannelId === channel.id && (
-                      <TableRow>
-                        <TableCell colSpan={11} className="p-4 bg-slate-50">
-                          <RoiForecast 
-                            price={channel.price}
-                            reach={channel.reach}
-                            err={channel.err}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </React.Fragment>
-                ))}
-              </>
-            )}
-          </TableBody>
-        </Table>
-      </div>
 
-      {/* Edit Channel Modal */}
-      {editingChannelId && (
-        <ChannelEditModal
-          isOpen={!!editingChannelId}
-          onClose={closeEditModal}
-          channelId={editingChannelId}
-        />
-      )}
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white border border-gray-200">
+          <thead>
+            <tr className="bg-gray-100">
+              <th 
+                className="cursor-pointer px-4 py-2 text-left border-b"
+                onClick={() => toggleSort('name')}
+              >
+                Название {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
+              </th>
+              <th className="px-4 py-2 text-left border-b">Тематика</th>
+              <th 
+                className="cursor-pointer px-4 py-2 text-left border-b"
+                onClick={() => toggleSort('price')}
+              >
+                Цена {sortBy === 'price' && (sortOrder === 'asc' ? '↑' : '↓')}
+              </th>
+              <th 
+                className="cursor-pointer px-4 py-2 text-left border-b"
+                onClick={() => toggleSort('reach')}
+              >
+                Охват {sortBy === 'reach' && (sortOrder === 'asc' ? '↑' : '↓')}
+              </th>
+              <th className="px-4 py-2 text-left border-b">ERR (%)</th>
+              <th className="px-4 py-2 text-left border-b">CPM</th>
+              <th className="px-4 py-2 text-left border-b">Стоимость подписчика</th>
+              <th 
+                className="cursor-pointer px-4 py-2 text-left border-b"
+                onClick={() => toggleSort('efficiency')}
+              >
+                Эффективность {sortBy === 'efficiency' && (sortOrder === 'asc' ? '↑' : '↓')}
+              </th>
+              <th className="px-4 py-2 text-center border-b">Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredChannels.length === 0 ? (
+              <tr>
+                <td colSpan={9} className="px-4 py-6 text-center border-b">
+                  {channels && channels.length > 0 
+                    ? 'Не найдено каналов, соответствующих критериям поиска' 
+                    : 'Не добавлено ни одного канала. Добавьте каналы через форму.'}
+                </td>
+              </tr>
+            ) : (
+              filteredChannels.map((channel) => {
+                return (
+                  <tr key={channel.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 border-b">{channel.name}</td>
+                    <td className="px-4 py-2 border-b">
+                      <Badge variant="outline" className="bg-gray-100">
+                        {channel.topic || "Не указана"}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-2 border-b">{formatCurrency(channel.price)}</td>
+                    <td className="px-4 py-2 border-b">{channel.reach.toLocaleString()}</td>
+                    <td className="px-4 py-2 border-b">{channel.err}%</td>
+                    <td className="px-4 py-2 border-b">{formatCurrency(channel.cpm)}</td>
+                    <td className="px-4 py-2 border-b">{formatCurrency(channel.costPerSubscriber)}</td>
+                    <td className="px-4 py-2 border-b">
+                      <Badge className={getEfficiencyClass(channel.efficiencyScore)}>
+                        {formatNumber(channel.efficiencyScore)}
+                        {channel.isRecommended && ' ✓'}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-2 border-b text-center">
+                      <a href={`https://t.me/${channel.username}`} target="_blank" rel="noopener noreferrer">
+                        <Button size="sm" variant="outline" className="mr-2">
+                          Перейти
+                        </Button>
+                      </a>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 } 

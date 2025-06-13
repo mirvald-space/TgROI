@@ -1,101 +1,86 @@
-import { useChannels, Channel } from '@/context/ChannelsContext';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency } from '@/lib/calculations';
-import RoiForecast from './RoiForecast';
-import EfficiencyIndicator from './EfficiencyIndicator';
-import { useState } from 'react';
+import { formatCurrency, formatNumber } from '@/lib/calculations';
+import { Channel } from '@/types';
 
 interface ChannelCardProps {
   channel: Channel;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
-export default function ChannelCard({ channel }: ChannelCardProps) {
-  const { deleteChannel } = useChannels();
-  const [showRoiForecast, setShowRoiForecast] = useState(false);
-
-  // Format metrics with appropriate units
-  const formattedCPM = formatCurrency(channel.cpm);
-  const formattedCostPerSubscriber = formatCurrency(channel.costPerSubscriber);
+export default function ChannelCard({ channel, onEdit, onDelete }: ChannelCardProps) {
+  // Get efficiency class based on score
+  const getEfficiencyClass = (value: number) => {
+    if (value < 1) return "text-green-500";
+    if (value < 1.5) return "text-yellow-500";
+    return "text-red-500";
+  };
 
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle>{channel.name}</CardTitle>
-            <CardDescription>{channel.subscribers.toLocaleString()} подписчиков</CardDescription>
-          </div>
-          <Badge className={channel.isRecommended ? "bg-green-500" : "bg-red-500"}>
-            {channel.isRecommended ? "Рекомендуется" : "Не рекомендуется"}
+        <CardTitle>{channel.name}</CardTitle>
+        <CardDescription>
+          <Badge variant="outline" className="mb-2">
+            {channel.topic || "Без тематики"}
           </Badge>
-        </div>
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-gray-500">Охват поста</p>
+            <p className="text-sm text-muted-foreground">Подписчики</p>
+            <p className="text-lg font-medium">{channel.subscribers.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Охват</p>
             <p className="text-lg font-medium">{channel.reach.toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Цена</p>
+            <p className="text-sm text-muted-foreground">ERR</p>
+            <p className="text-lg font-medium">{channel.err}%</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Цена</p>
             <p className="text-lg font-medium">{formatCurrency(channel.price)}</p>
           </div>
-          <div>
-            <p className="text-sm text-gray-500">ERR%</p>
-            <p className="text-lg font-medium">
-              {channel.err.toFixed(1)}%
-              <span className="ml-2 text-xs text-gray-500">
-                {channel.errType === '24h' ? '24ч' : 'Общий'}
-              </span>
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">CPM</p>
-            <p className="text-lg font-medium">{formattedCPM}</p>
-          </div>
         </div>
-
-        <div className="pt-2">
-          <p className="text-sm text-gray-500">Стоимость за подписчика</p>
-          <p className="text-lg font-medium">{formattedCostPerSubscriber}</p>
-        </div>
-
-        <EfficiencyIndicator 
-          score={channel.efficiencyScore}
-          marketAverage={1}
-        />
         
-        <div className="pt-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setShowRoiForecast(!showRoiForecast)}
-            className="w-full"
-          >
-            {showRoiForecast ? "Скрыть прогноз ROI" : "Показать прогноз ROI"}
-          </Button>
-        </div>
-
-        {showRoiForecast && (
-          <div className="pt-4">
-            <RoiForecast 
-              price={channel.price}
-              reach={channel.reach}
-              err={channel.err}
-            />
+        <div className="pt-2 border-t">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">CPM</p>
+              <p className={`text-lg font-medium ${getEfficiencyClass(channel.cpm / 5)}`}>
+                {formatCurrency(channel.cpm)}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Стоимость подписчика</p>
+              <p className={`text-lg font-medium ${getEfficiencyClass(channel.costPerSubscriber / 0.5)}`}>
+                {formatCurrency(channel.costPerSubscriber)}
+              </p>
+            </div>
           </div>
-        )}
+        </div>
       </CardContent>
-      <CardFooter>
-        <Button 
-          variant="destructive" 
-          className="w-full" 
-          onClick={() => deleteChannel(channel.id)}
-        >
-          Удалить канал
-        </Button>
+      <CardFooter className="flex justify-between">
+        <a href={`https://t.me/${channel.username}`} target="_blank" rel="noopener noreferrer">
+          <Button variant="outline">Перейти в канал</Button>
+        </a>
+        <div className="space-x-2">
+          {onEdit && (
+            <Button variant="ghost" onClick={() => onEdit(channel.id)}>
+              Редактировать
+            </Button>
+          )}
+          {onDelete && (
+            <Button variant="ghost" className="text-red-500" onClick={() => onDelete(channel.id)}>
+              Удалить
+            </Button>
+          )}
+        </div>
       </CardFooter>
     </Card>
   );

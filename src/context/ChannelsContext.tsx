@@ -1,20 +1,5 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from "react";
-
-// Define the Channel interface
-export interface Channel {
-  id: string;
-  name: string;
-  subscribers: number;
-  reach: number;
-  price: number;
-  err: number;
-  cpm: number;
-  costPerSubscriber: number;
-  efficiencyScore: number;
-  isRecommended: boolean;
-  errType: '24h' | 'overall';
-  topic: string; // Тематика канала
-}
+import { Channel } from "@/types";
 
 // Рыночные данные для сравнения (2025)
 export const MARKET_DATA = {
