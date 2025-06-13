@@ -2,7 +2,7 @@ import { useChannels, Channel } from '@/context/ChannelsContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency, formatNumber } from '@/lib/calculations';
+import { formatCurrency } from '@/lib/calculations';
 import RoiForecast from './RoiForecast';
 import EfficiencyIndicator from './EfficiencyIndicator';
 import { useState } from 'react';
@@ -15,25 +15,9 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
   const { deleteChannel } = useChannels();
   const [showRoiForecast, setShowRoiForecast] = useState(false);
 
-  // Determine efficiency color
-  const getEfficiencyColor = (score: number) => {
-    if (score < 0.8) return "bg-green-500 hover:bg-green-600";
-    if (score < 1.2) return "bg-yellow-500 hover:bg-yellow-600";
-    return "bg-red-500 hover:bg-red-600";
-  };
-
-  // Get efficiency rating
-  const getEfficiencyRating = (score: number): string => {
-    if (score < 0.8) return "Отлично";
-    if (score < 1.2) return "Нормально";
-    return "Низкая";
-  };
-
   // Format metrics with appropriate units
   const formattedCPM = formatCurrency(channel.cpm);
   const formattedCostPerSubscriber = formatCurrency(channel.costPerSubscriber);
-  const formattedEfficiency = formatNumber(channel.efficiencyScore);
-  const efficiencyRating = getEfficiencyRating(channel.efficiencyScore);
 
   return (
     <Card className="w-full">

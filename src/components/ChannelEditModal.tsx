@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Channel, MARKET_DATA } from '@/context/ChannelsContext';
+import { MARKET_DATA } from '@/context/ChannelsContext';
 
 interface ChannelEditModalProps {
   isOpen: boolean;
