@@ -26,6 +26,9 @@ export default function ChannelCard({ channel, onEdit, onDelete }: ChannelCardPr
           <Badge variant="outline" className="mb-2">
             {channel.topic || "Без тематики"}
           </Badge>
+          <Badge variant="secondary" className="ml-2">
+            {channel.geo || "Гео не указано"}
+          </Badge>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

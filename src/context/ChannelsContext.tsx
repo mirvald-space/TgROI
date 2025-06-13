@@ -1,5 +1,6 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from "react";
 import { Channel } from "@/types";
+import { supabase } from "@/lib/supabaseClient";
 
 // Рыночные данные для сравнения (2025)
 export const MARKET_DATA = {
@@ -42,18 +43,27 @@ export function ChannelsProvider({ children }: { children: ReactNode }) {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [sortType, setSortType] = useState<"efficiency" | "cpm" | "costPerSubscriber">("efficiency");
 
-  // Load channels from localStorage on initial render
+  // Загрузка каналов из Supabase при инициализации
   useEffect(() => {
-    const savedChannels = localStorage.getItem("channels");
-    if (savedChannels) {
-      setChannels(JSON.parse(savedChannels));
-    }
+    const fetchChannels = async () => {
+      const { data, error } = await supabase
+        .from("channels")
+        .select("*")
+        .order("created_at", { ascending: true });
+      if (!error && data) {
+        setChannels(data.map((ch: any) => ({
+          ...ch,
+          price: Number(ch.price),
+          cpm: Number(ch.cpm),
+          costPerSubscriber: Number(ch.cost_per_subscriber),
+          efficiencyScore: Number(ch.efficiency_score),
+          isRecommended: Boolean(ch.is_recommended),
+          errType: ch.err_type,
+        })));
+      }
+    };
+    fetchChannels();
   }, []);
-
-  // Save channels to localStorage when they change
-  useEffect(() => {
-    localStorage.setItem("channels", JSON.stringify(channels));
-  }, [channels]);
 
   // Определить подходящую категорию CPM на основе количества подписчиков
   const getChannelCategory = (subscribers: number) => {
@@ -101,31 +111,86 @@ export function ChannelsProvider({ children }: { children: ReactNode }) {
     };
   };
 
-  // Function to add a new channel
-  const addChannel = (channelData: Omit<Channel, "id" | "cpm" | "costPerSubscriber" | "efficiencyScore" | "isRecommended">) => {
+  // Добавление канала в Supabase
+  const addChannel = async (channelData: Omit<Channel, "id" | "cpm" | "costPerSubscriber" | "efficiencyScore" | "isRecommended">) => {
     const metrics = calculateChannelMetrics(channelData);
-    
-    const newChannel: Channel = {
-      id: Date.now().toString(),
-      ...channelData,
-      ...metrics
+    // Преобразуем к snake_case для Supabase
+    const newChannel = {
+      name: channelData.name,
+      username: channelData.username,
+      subscribers: channelData.subscribers,
+      reach: channelData.reach,
+      price: channelData.price,
+      err: channelData.err,
+      cpm: metrics.cpm,
+      cost_per_subscriber: metrics.costPerSubscriber,
+      efficiency_score: metrics.efficiencyScore,
+      is_recommended: metrics.isRecommended,
+      err_type: channelData.errType,
+      topic: channelData.topic,
+      category: channelData.category,
+      geo: channelData.geo,
     };
-    
-    setChannels(prev => [...prev, newChannel]);
+    const { data, error } = await supabase
+      .from("channels")
+      .insert([newChannel])
+      .select();
+    if (!error && data && data[0]) {
+      setChannels(prev => [...prev, {
+        ...data[0],
+        costPerSubscriber: data[0].cost_per_subscriber,
+        efficiencyScore: data[0].efficiency_score,
+        isRecommended: data[0].is_recommended,
+        errType: data[0].err_type,
+      } as Channel]);
+    }
   };
 
-  // Function to edit a channel
-  const editChannel = (id: string, channelData: Omit<Channel, "id" | "cpm" | "costPerSubscriber" | "efficiencyScore" | "isRecommended">) => {
+  // Редактирование канала в Supabase
+  const editChannel = async (id: string, channelData: Omit<Channel, "id" | "cpm" | "costPerSubscriber" | "efficiencyScore" | "isRecommended">) => {
     const metrics = calculateChannelMetrics(channelData);
-
-    setChannels(prev => prev.map(channel => 
-      channel.id === id ? { ...channel, ...channelData, ...metrics } : channel
-    ));
+    // Преобразуем к snake_case для Supabase
+    const updateChannel = {
+      name: channelData.name,
+      username: channelData.username,
+      subscribers: channelData.subscribers,
+      reach: channelData.reach,
+      price: channelData.price,
+      err: channelData.err,
+      cpm: metrics.cpm,
+      cost_per_subscriber: metrics.costPerSubscriber,
+      efficiency_score: metrics.efficiencyScore,
+      is_recommended: metrics.isRecommended,
+      err_type: channelData.errType,
+      topic: channelData.topic,
+      category: channelData.category,
+      geo: channelData.geo,
+    };
+    const { data, error } = await supabase
+      .from("channels")
+      .update(updateChannel)
+      .eq("id", id)
+      .select();
+    if (!error && data && data[0]) {
+      setChannels(prev => prev.map(channel => channel.id === id ? {
+        ...data[0],
+        costPerSubscriber: data[0].cost_per_subscriber,
+        efficiencyScore: data[0].efficiency_score,
+        isRecommended: data[0].is_recommended,
+        errType: data[0].err_type,
+      } as Channel : channel));
+    }
   };
 
-  // Function to delete a channel
-  const deleteChannel = (id: string) => {
-    setChannels(prev => prev.filter(channel => channel.id !== id));
+  // Удаление канала из Supabase
+  const deleteChannel = async (id: string) => {
+    const { error } = await supabase
+      .from("channels")
+      .delete()
+      .eq("id", id);
+    if (!error) {
+      setChannels(prev => prev.filter(channel => channel.id !== id));
+    }
   };
 
   // Get sorted channels based on sortType

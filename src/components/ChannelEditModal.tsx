@@ -36,20 +36,24 @@ export default function ChannelEditModal({
   // Form state
   const [formData, setFormData] = useState<{
     name: string;
+    username: string;
     subscribers: string;
     reach: string;
     price: string;
     err: string;
     errType: '24h' | 'overall';
     topic: string;
+    geo: string;
   }>({
     name: '',
+    username: '',
     subscribers: '',
     reach: '',
     price: '',
     err: '',
     errType: '24h',
     topic: '',
+    geo: '',
   });
 
   // Update form data when channel changes
@@ -57,12 +61,14 @@ export default function ChannelEditModal({
     if (channelToEdit) {
       setFormData({
         name: channelToEdit.name,
+        username: channelToEdit.username || '',
         subscribers: channelToEdit.subscribers.toString(),
         reach: channelToEdit.reach.toString(),
         price: channelToEdit.price.toString(),
         err: channelToEdit.err.toString(),
         errType: channelToEdit.errType,
         topic: channelToEdit.topic || '',
+        geo: channelToEdit.geo || '',
       });
     }
   }, [channelToEdit]);
@@ -118,7 +124,7 @@ export default function ChannelEditModal({
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -130,6 +136,10 @@ export default function ChannelEditModal({
     // Validate form data
     if (!formData.name.trim()) {
       setError('Укажите название канала');
+      return;
+    }
+    if (!formData.geo.trim()) {
+      setError('Укажите географию канала');
       return;
     }
 
@@ -160,14 +170,21 @@ export default function ChannelEditModal({
     }
 
     // Edit channel in context
-    editChannel(channelToEdit.id, {
+    let category: string = 'micro';
+    if (subscribers >= 1000000) category = 'large';
+    else if (subscribers >= 100000) category = 'medium';
+    else if (subscribers >= 10000) category = 'small';
+    await editChannel(channelToEdit.id, {
       name: formData.name.trim(),
+      username: formData.username.trim(),
       subscribers,
       reach,
       price,
       err,
       errType: formData.errType,
       topic: formData.topic.trim(),
+      geo: formData.geo.trim(),
+      category,
     });
 
     // Close modal
@@ -216,6 +233,20 @@ export default function ChannelEditModal({
               />
               <p className="text-xs text-gray-500">
                 Основная тематика канала
+              </p>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="username">Юзернейм (без @)</Label>
+              <Input
+                id="username"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                placeholder="mychannel"
+              />
+              <p className="text-xs text-gray-500">
+                username канала для перехода по ссылке (t.me/username)
               </p>
             </div>
 
@@ -314,6 +345,20 @@ export default function ChannelEditModal({
               </p>
               <p className="text-xs text-gray-500">
                 {getRecommendedErr()}
+              </p>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="geo">География</Label>
+              <Input
+                id="geo"
+                name="geo"
+                value={formData.geo}
+                onChange={handleChange}
+                placeholder="Россия, СНГ, Европа и т.д."
+              />
+              <p className="text-xs text-gray-500">
+                Основная география аудитории канала
               </p>
             </div>
           </div>

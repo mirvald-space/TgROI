@@ -13,4 +13,5 @@ export interface Channel {
   errType: '24h' | 'overall';
   topic: string;
   category: string;
+  geo: string;
 } 

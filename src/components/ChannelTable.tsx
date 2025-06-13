@@ -115,6 +115,7 @@ export default function ChannelTable({ channels }: ChannelTableProps) {
                 Название {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
               <th className="px-4 py-2 text-left border-b">Тематика</th>
+              <th className="px-4 py-2 text-left border-b">География</th>
               <th 
                 className="cursor-pointer px-4 py-2 text-left border-b"
                 onClick={() => toggleSort('price')}
@@ -156,6 +157,11 @@ export default function ChannelTable({ channels }: ChannelTableProps) {
                     <td className="px-4 py-2 border-b">
                       <Badge variant="outline" className="bg-gray-100">
                         {channel.topic || "Не указана"}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-2 border-b">
+                      <Badge variant="outline" className="bg-gray-100">
+                        {channel.geo || "Не указана"}
                       </Badge>
                     </td>
                     <td className="px-4 py-2 border-b">{formatCurrency(channel.price)}</td>
