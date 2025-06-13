@@ -163,29 +163,43 @@ export default function ChannelTable() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex flex-col gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => toggleRoiForecast(channel.id)}
-                            className="whitespace-nowrap"
-                          >
-                            {selectedChannelId === channel.id ? "Скрыть ROI" : "Прогноз ROI"}
-                          </Button>
+                        <div className="relative">
                           <Button 
                             size="sm"
                             variant="outline"
-                            onClick={() => openEditModal(channel.id)}
+                            onClick={() => setSelectedChannelId(prev => prev === channel.id ? null : channel.id)}
+                            className="whitespace-nowrap"
                           >
-                            Редактировать
+                            Действия
                           </Button>
-                          <Button 
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => deleteChannel(channel.id)}
-                          >
-                            Удалить
-                          </Button>
+                          {selectedChannelId === channel.id && (
+                            <div className="absolute right-0 top-full z-10 mt-1 min-w-[150px] rounded-md border bg-white p-1 shadow-md">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="w-full justify-start"
+                                onClick={() => toggleRoiForecast(channel.id)}
+                              >
+                                {selectedChannelId === channel.id ? "Скрыть ROI" : "Прогноз ROI"}
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="w-full justify-start"
+                                onClick={() => openEditModal(channel.id)}
+                              >
+                                Редактировать
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="w-full justify-start text-red-600"
+                                onClick={() => deleteChannel(channel.id)}
+                              >
+                                Удалить
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
