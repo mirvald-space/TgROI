@@ -7,6 +7,7 @@ import { formatCurrency, formatNumber } from '@/lib/calculations';
 import RoiForecast from './RoiForecast';
 import EfficiencyIndicator from './EfficiencyIndicator';
 import ChannelEditModal from './ChannelEditModal';
+import { FaArrowUp } from 'react-icons/fa';
 
 export default function ChannelTable() {
   const { sortedChannels, deleteChannel, sortType, setSortType } = useChannels();
@@ -75,7 +76,7 @@ export default function ChannelTable() {
             variant={sortType === "efficiency" ? "default" : "outline"}
             onClick={() => handleSortChange("efficiency")}
           >
-            Сортировать по эффективности
+            По эффективности
           </Button>
           <Button 
             size="sm"
@@ -109,9 +110,6 @@ export default function ChannelTable() {
               <TableHead className="text-right">Стоимость подписчика</TableHead>
               <TableHead className="text-right">
                 Эффективность
-                <span className="block text-xs font-normal mt-1">
-                  (комплексный показатель)
-                </span>
               </TableHead>
               <TableHead className="text-right w-[160px]">Действия</TableHead>
             </TableRow>
@@ -130,11 +128,6 @@ export default function ChannelTable() {
                     <TableRow>
                       <TableCell className="font-medium">
                         {channel.name}
-                        <div className="mt-1">
-                          <Badge className={channel.isRecommended ? "bg-green-500" : "bg-red-500"}>
-                            {channel.isRecommended ? "Рекомендуется" : "Не рекомендуется"}
-                          </Badge>
-                        </div>
                       </TableCell>
                       <TableCell className="text-right">{channel.subscribers.toLocaleString()}</TableCell>
                       <TableCell className="text-right">{channel.reach.toLocaleString()}</TableCell>
@@ -150,16 +143,13 @@ export default function ChannelTable() {
                       <TableCell className="text-right">{formatCurrency(channel.cpm)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(channel.costPerSubscriber)}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex flex-col items-end gap-1">
+                        <div className="flex gap-1">
                           <Badge 
                             className={`${getEfficiencyColor(channel.efficiencyScore)} cursor-pointer`}
                             onClick={() => toggleEfficiencyDetails(channel.id)}
                           >
-                            {getEfficiencyRating(channel.efficiencyScore)}
-                          </Badge>
-                          <div className="text-xs text-gray-500">
                             {formatNumber(channel.efficiencyScore)}
-                          </div>
+                          </Badge>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
