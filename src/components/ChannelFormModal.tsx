@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import ChannelForm from "./ChannelForm";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, PlusCircle } from "lucide-react";
 
 export default function ChannelFormModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,10 +30,16 @@ export default function ChannelFormModal() {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1">
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <Button variant="default" onClick={() => setIsOpen(true)}>
-          Добавить канал
+        <Button 
+          variant="default" 
+          size="sm" 
+          onClick={() => setIsOpen(true)}
+          className="flex items-center gap-1"
+        >
+          <PlusCircle className="h-4 w-4" />
+          <span>Добавить канал</span>
         </Button>
         {isOpen && (
           <DialogContent 
@@ -56,10 +62,10 @@ export default function ChannelFormModal() {
           variant="outline" 
           size="icon" 
           onClick={() => setIsHelpOpen(true)} 
-          className="rounded-full"
+          className="rounded-full w-6 h-6 p-0"
           aria-label="Информация об эффективности"
         >
-          <HelpCircle className="h-4 w-4" />
+          <HelpCircle className="h-3 w-3" />
         </Button>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
