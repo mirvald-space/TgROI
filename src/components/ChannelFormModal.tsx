@@ -29,7 +29,10 @@ export default function ChannelFormModal() {
         Добавить канал
       </Button>
       {isOpen && (
-        <DialogContent className="sm:max-w-[500px]" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogContent 
+          className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Добавить новый канал</DialogTitle>
             <DialogDescription>
