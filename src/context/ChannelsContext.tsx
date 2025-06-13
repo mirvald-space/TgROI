@@ -51,15 +51,15 @@ export function ChannelsProvider({ children }: { children: ReactNode }) {
         .select("*")
         .order("created_at", { ascending: true });
       if (!error && data) {
-        setChannels(data.map((ch: any) => ({
+        setChannels(data.map((ch: Record<string, unknown>) => ({
           ...ch,
           price: Number(ch.price),
           cpm: Number(ch.cpm),
           costPerSubscriber: Number(ch.cost_per_subscriber),
           efficiencyScore: Number(ch.efficiency_score),
           isRecommended: Boolean(ch.is_recommended),
-          errType: ch.err_type,
-        })));
+          errType: ch.err_type as '24h' | 'overall',
+        })) as Channel[]);
       }
     };
     fetchChannels();
