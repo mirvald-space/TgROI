@@ -112,9 +112,10 @@ export function ChannelsProvider({ children }: { children: ReactNode }) {
   };
 
   // Добавление канала в Supabase
-  const addChannel = async (channelData: Omit<Channel, "id" | "cpm" | "costPerSubscriber" | "efficiencyScore" | "isRecommended">) => {
+  const addChannel = async (channelData: Omit<Channel, "id" | "cpm" | "costPerSubscriber" | "efficiencyScore" | "isRecommended" | "created_at" | "price_updated_at">) => {
     const metrics = calculateChannelMetrics(channelData);
     // Преобразуем к snake_case для Supabase
+    const now = new Date().toISOString();
     const newChannel = {
       name: channelData.name,
       username: channelData.username,
@@ -130,6 +131,7 @@ export function ChannelsProvider({ children }: { children: ReactNode }) {
       topic: channelData.topic,
       category: channelData.category,
       geo: channelData.geo,
+      price_updated_at: now,
     };
     const { data, error } = await supabase
       .from("channels")
@@ -147,10 +149,13 @@ export function ChannelsProvider({ children }: { children: ReactNode }) {
   };
 
   // Редактирование канала в Supabase
-  const editChannel = async (id: string, channelData: Omit<Channel, "id" | "cpm" | "costPerSubscriber" | "efficiencyScore" | "isRecommended">) => {
+  const editChannel = async (id: string, channelData: Omit<Channel, "id" | "cpm" | "costPerSubscriber" | "efficiencyScore" | "isRecommended" | "created_at" | "price_updated_at">) => {
     const metrics = calculateChannelMetrics(channelData);
     // Преобразуем к snake_case для Supabase
-    const updateChannel = {
+    const now = new Date().toISOString();
+    // Получить текущий канал для сравнения цены
+    const current = channels.find(ch => ch.id === id);
+    const updateChannel: any = {
       name: channelData.name,
       username: channelData.username,
       subscribers: channelData.subscribers,
@@ -166,6 +171,10 @@ export function ChannelsProvider({ children }: { children: ReactNode }) {
       category: channelData.category,
       geo: channelData.geo,
     };
+    // Если цена изменилась — обновить дату
+    if (!current || current.price !== channelData.price) {
+      updateChannel.price_updated_at = now;
+    }
     const { data, error } = await supabase
       .from("channels")
       .update(updateChannel)

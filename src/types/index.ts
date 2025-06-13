@@ -14,4 +14,6 @@ export interface Channel {
   topic: string;
   category: string;
   geo: string;
+  created_at?: string;
+  price_updated_at?: string;
 } 

@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Channel } from '@/types';
 import { formatCurrency, formatNumber } from '@/lib/calculations';
 import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { Tooltip } from '@/components/ui/tooltip';
 
 interface ChannelTableProps {
   channels: Channel[];
@@ -77,6 +79,16 @@ export default function ChannelTable({ channels }: ChannelTableProps) {
     return 'bg-red-500';
   };
 
+  // Найти максимальную дату created_at среди каналов
+  const lastUpdated = channels.length > 0
+    ? channels.reduce((max, ch) => {
+        if (ch.created_at && (!max || new Date(ch.created_at) > new Date(max))) {
+          return ch.created_at;
+        }
+        return max;
+      }, '')
+    : null;
+
   return (
     <div className="w-full">
       <div className="flex flex-col sm:flex-row justify-between mb-4 gap-2">
@@ -88,19 +100,25 @@ export default function ChannelTable({ channels }: ChannelTableProps) {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant={filterBy === 'all' ? 'default' : 'outline'}
-            onClick={() => setFilterBy('all')}
-          >
-            Все каналы
-          </Button>
-          <Button
-            variant={filterBy === 'recommended' ? 'default' : 'outline'}
-            onClick={() => setFilterBy('recommended')}
-          >
-            Рекомендуемые
-          </Button>
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-end w-full sm:w-auto">
+          <div className="text-xs text-gray-500 sm:mr-4 text-right">
+            Последнее обновление:{' '}
+            {lastUpdated ? format(new Date(lastUpdated), 'dd.MM.yyyy HH:mm') : '—'}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant={filterBy === 'all' ? 'default' : 'outline'}
+              onClick={() => setFilterBy('all')}
+            >
+              Все каналы
+            </Button>
+            <Button
+              variant={filterBy === 'recommended' ? 'default' : 'outline'}
+              onClick={() => setFilterBy('recommended')}
+            >
+              Рекомендуемые
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -164,7 +182,11 @@ export default function ChannelTable({ channels }: ChannelTableProps) {
                         {channel.geo || "Не указана"}
                       </Badge>
                     </td>
-                    <td className="px-4 py-2 border-b">{formatCurrency(channel.price)}</td>
+                    <td className="px-4 py-2 border-b">
+                      <Tooltip content={channel.price_updated_at ? `Обновлено: ${format(new Date(channel.price_updated_at), 'dd.MM.yyyy HH:mm')}` : 'Нет данных'}>
+                        <span>{formatCurrency(channel.price)}</span>
+                      </Tooltip>
+                    </td>
                     <td className="px-4 py-2 border-b">{channel.reach.toLocaleString()}</td>
                     <td className="px-4 py-2 border-b">{channel.err}%</td>
                     <td className="px-4 py-2 border-b">{formatCurrency(channel.cpm)}</td>
