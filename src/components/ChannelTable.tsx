@@ -101,6 +101,7 @@ export default function ChannelTable() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-[200px]">Канал</TableHead>
+              <TableHead className="text-right">Тематика</TableHead>
               <TableHead className="text-right">Подписчики</TableHead>
               <TableHead className="text-right">Охват</TableHead>
               <TableHead className="text-right">Цена</TableHead>
@@ -117,7 +118,7 @@ export default function ChannelTable() {
           <TableBody>
             {sortedChannels.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-center py-4">
+                <TableCell colSpan={11} className="text-center py-4">
                   Каналы еще не добавлены. Добавьте канал через форму.
                 </TableCell>
               </TableRow>
@@ -128,6 +129,9 @@ export default function ChannelTable() {
                     <TableRow>
                       <TableCell className="font-medium">
                         {channel.name}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {channel.topic || "—"}
                       </TableCell>
                       <TableCell className="text-right">{channel.subscribers.toLocaleString()}</TableCell>
                       <TableCell className="text-right">{channel.reach.toLocaleString()}</TableCell>
@@ -195,7 +199,7 @@ export default function ChannelTable() {
                     </TableRow>
                     {showEfficiencyDetails === channel.id && (
                       <TableRow>
-                        <TableCell colSpan={10} className="bg-slate-50 p-4 pb-6">
+                        <TableCell colSpan={11} className="bg-slate-50 p-4 pb-6">
                           <div className="max-w-md mx-auto">
                             <EfficiencyIndicator 
                               score={channel.efficiencyScore}
@@ -207,7 +211,7 @@ export default function ChannelTable() {
                     )}
                     {selectedChannelId === channel.id && (
                       <TableRow>
-                        <TableCell colSpan={10} className="p-4 bg-slate-50">
+                        <TableCell colSpan={11} className="p-4 bg-slate-50">
                           <RoiForecast 
                             price={channel.price}
                             reach={channel.reach}

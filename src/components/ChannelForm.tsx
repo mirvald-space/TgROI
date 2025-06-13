@@ -26,6 +26,7 @@ export default function ChannelForm({ onSubmitSuccess }: ChannelFormProps) {
     price: string;
     err: string;
     errType: '24h' | 'overall';
+    topic: string;
   }>({
     name: '',
     subscribers: '',
@@ -33,6 +34,7 @@ export default function ChannelForm({ onSubmitSuccess }: ChannelFormProps) {
     price: '',
     err: '',
     errType: '24h',
+    topic: '',
   });
 
   // Handle input change
@@ -91,6 +93,7 @@ export default function ChannelForm({ onSubmitSuccess }: ChannelFormProps) {
       price,
       err,
       errType: formData.errType,
+      topic: formData.topic.trim(),
     });
 
     // Reset form
@@ -101,6 +104,7 @@ export default function ChannelForm({ onSubmitSuccess }: ChannelFormProps) {
       price: '',
       err: '',
       errType: '24h',
+      topic: '',
     });
 
     // Call callback if provided
@@ -170,6 +174,20 @@ export default function ChannelForm({ onSubmitSuccess }: ChannelFormProps) {
               onChange={handleChange}
               placeholder="Мой Telegram канал"
             />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="topic">Тематика</Label>
+            <Input
+              id="topic"
+              name="topic"
+              value={formData.topic}
+              onChange={handleChange}
+              placeholder="Новости, бизнес, маркетинг и т.д."
+            />
+            <p className="text-xs text-gray-500">
+              Основная тематика канала
+            </p>
           </div>
 
           <div className="grid gap-2">

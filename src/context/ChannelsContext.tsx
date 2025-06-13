@@ -13,6 +13,7 @@ export interface Channel {
   efficiencyScore: number;
   isRecommended: boolean;
   errType: '24h' | 'overall';
+  topic: string; // Тематика канала
 }
 
 // Рыночные данные для сравнения (2025)
