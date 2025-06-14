@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img width="800" src="https://via.placeholder.com/800x450?text=TgAnalytics+Screenshot" alt="TgAnalytics Screenshot">
+  <img width="800" src="/public/cover.png" alt="TgAnalytics Screenshot">
 </p>
 
 <p align="center">
